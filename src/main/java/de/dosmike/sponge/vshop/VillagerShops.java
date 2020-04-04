@@ -21,11 +21,13 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.*;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
+import org.spongepowered.api.event.world.chunk.LoadChunkEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
@@ -36,6 +38,7 @@ import org.spongepowered.api.service.permission.PermissionService;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Chunk;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -555,13 +558,13 @@ public class VillagerShops {
     static long ledgerChatTimer = System.currentTimeMillis();
 
     static void startTimers() {
-        getSyncScheduler().scheduleWithFixedDelay(
-                () -> {
-                    synchronized (npcs) {
-                        for (NPCguard npc : npcs)
-                            npc.tick();
-                    }
-                }, 100, 100, TimeUnit.MILLISECONDS);
+//        getSyncScheduler().scheduleWithFixedDelay(
+//                () -> {
+//                    synchronized (npcs) {
+//                        for (NPCguard npc : npcs)
+//                            npc.tick();
+//                    }
+//                }, 100, 100, TimeUnit.MILLISECONDS);
         getSyncScheduler().scheduleWithFixedDelay(
                 () -> {
                     if (System.currentTimeMillis() - ledgerChatTimer > 15000) {
@@ -639,5 +642,44 @@ public class VillagerShops {
             Utilities.openShops.remove(player);
             Utilities.actionUnstack.remove(player);
         }
+    }
+
+    public void spawnShopsInChunk(Chunk chunk) {
+        npcs.forEach(npc -> {
+            Optional<Entity> entity = chunk.getEntities()
+                    .stream()
+                    .filter(e -> e.getUniqueId().equals(npc.getLastKnownEntityUuid()))
+                    .findAny();
+
+            // If an entity with the persisted last known uuid does not appear in the chunk, create a new one
+            if (!entity.isPresent()) {
+                Entity shop = npc.getLoc().getExtent().createEntity(npc.getNpcType(), npc.getLoc().getPosition());
+                    shop.offer(Keys.AI_ENABLED, false);
+                    shop.offer(Keys.IS_SILENT, true);
+
+                    //setting variant. super consistent ;D
+                    if (npc.getVariant() != null)
+                        try {
+                            npc.getVariant().attach(shop);
+                        } catch (Exception e) {
+                            VillagerShops.l("Variant no longer supported! Did the EntityType change?");
+                        }
+
+                    shop.offer(Keys.DISPLAY_NAME, npc.getDisplayName());
+
+                    if (npc.getLoc().getExtent().spawnEntity(shop)) {
+                        npc.setLastKnownEntityUuid(shop.getUniqueId());
+                    } else {
+                        VillagerShops.w("Unable to spawn shop %s - Check spawn protection and chunk limits at %s %d %d %d!",
+                                shop.getUniqueId().toString(),
+                                shop.getLocation().getExtent().getName(),
+                                shop.getLocation().getBlockX(),
+                                shop.getLocation().getBlockY(),
+                                shop.getLocation().getBlockZ());
+                    }
+            } else {
+                npc.setLe(entity.get());
+            }
+        });
     }
 }

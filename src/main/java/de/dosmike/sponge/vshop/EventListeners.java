@@ -23,6 +23,7 @@ import org.spongepowered.api.event.world.ExplosionEvent;
 import org.spongepowered.api.event.world.LoadWorldEvent;
 import org.spongepowered.api.event.world.SaveWorldEvent;
 import org.spongepowered.api.event.world.UnloadWorldEvent;
+import org.spongepowered.api.event.world.chunk.LoadChunkEvent;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.Extent;
@@ -152,6 +153,9 @@ public class EventListeners {
         VillagerShops.instance.loadShops(event.getTargetWorld().getUniqueId());
     }
 
+    public void onChunkLoad(LoadChunkEvent event) {
+        VillagerShops.instance.spawnShopsInChunk(event.getTargetChunk());
+    }
 
 //    @Listener //someone that knows how to do that please :D
 //    public void onAiTargetEntity(AITaskEvent event) {
