@@ -2,7 +2,6 @@ package de.dosmike.sponge.vshop;
 
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Inject;
-import de.dosmike.sponge.VersionChecker;
 import de.dosmike.sponge.languageservice.API.LanguageService;
 import de.dosmike.sponge.languageservice.API.PluginTranslation;
 import de.dosmike.sponge.vshop.shops.NPCguard;
@@ -274,8 +273,6 @@ public class VillagerShops {
         l("Starting timers...");
         startTimers();
 
-        //these two calls depend on loadConfig()
-        VersionChecker.checkPluginVersion(getContainer());
         TranslationLoader.fetchTranslations();
 
         l("VillagerShops is now ready!");
@@ -305,7 +302,6 @@ public class VillagerShops {
                 root.mergeValuesFrom(defaultLoader.load());
                 loader.save(root);
             }
-            VersionChecker.setVersionCheckingEnabled(getContainer().getId(), root.getNode("VersionChecking").getBoolean(false));
             ConfigSettings.loadFromConfig(root);
         } catch (IOException e) {
             new RuntimeException("Could not load settings.conf", e).printStackTrace();

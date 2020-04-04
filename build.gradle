@@ -65,7 +65,9 @@ task removeOldVersions() {
                     it.file.name != baseArtifactName
         }
 }
+
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 task uberJar(type:ShadowJar, group:'_Plugin', dependsOn:removeOldVersions) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     exclude 'META-INF/**'
