@@ -33,7 +33,7 @@ public class NPCguardSerializer implements TypeSerializer<NPCguard> {
     @Override
     public void serialize(TypeToken<?> arg0, NPCguard npc, ConfigurationNode rootNode) throws ObjectMappingException {
         rootNode.getNode("uuid").setValue(npc.getIdentifier().toString());
-        rootNode.getNode("entityUuid").setValue(npc.getLastKnownEntityUuid());
+        rootNode.getNode("entityUuid").setValue(npc.getLastKnownEntityUuid().toString());
         rootNode.getNode("items").setValue(tokenListStockItem, npc.getPreparator().getAllItems());
         ConfigurationNode location = rootNode.getNode("location");
         location.getNode("WorldUuid").setValue(npc.getLoc().getExtent().getUniqueId().toString());

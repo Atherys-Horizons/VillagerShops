@@ -200,9 +200,34 @@ public class VillagerShops {
     }
     private static final List<NPCguard> npcs = new LinkedList<>();
 
-    static void addNPCguard(NPCguard add) {
+    static void addNPCguard(NPCguard npc) {
         synchronized (npcs) {
-            npcs.add(add);
+            npcs.add(npc);
+
+            Entity shop = npc.getLoc().getExtent().createEntity(npc.getNpcType(), npc.getLoc().getPosition());
+            shop.offer(Keys.AI_ENABLED, false);
+            shop.offer(Keys.IS_SILENT, true);
+
+            //setting variant. super consistent ;D
+            if (npc.getVariant() != null)
+                try {
+                    npc.getVariant().attach(shop);
+                } catch (Exception e) {
+                    VillagerShops.l("Variant no longer supported! Did the EntityType change?");
+                }
+
+            shop.offer(Keys.DISPLAY_NAME, npc.getDisplayName());
+
+            if (npc.getLoc().getExtent().spawnEntity(shop)) {
+                npc.setLastKnownEntityUuid(shop.getUniqueId());
+            } else {
+                VillagerShops.w("Unable to spawn shop %s - Check spawn protection and chunk limits at %s %d %d %d!",
+                        shop.getUniqueId().toString(),
+                        shop.getLocation().getExtent().getName(),
+                        shop.getLocation().getBlockX(),
+                        shop.getLocation().getBlockY(),
+                        shop.getLocation().getBlockZ());
+            }
         }
         instance.npcsDirty.set(true);
     }
